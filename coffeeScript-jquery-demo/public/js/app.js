@@ -2,13 +2,74 @@
 (function() {
   var TodoApp;
 
+  Storage.prototype.setObj = function(key, obj) {
+    return this.setItem(key, JSON.stringify(obj));
+  };
+
+  Storage.prototype.getObj = function(key) {
+    return JSON.parse(this.getItem(key));
+  };
+
   TodoApp = class TodoApp {
     constructor() {
+      this.cacheElements();
       this.bindEvents();
+      this.displayItems();
+    }
+
+    cacheElements() {
+      this.$input = $('#new-todo');
+      return this.$todoList = $('#todo-list');
     }
 
     bindEvents() {
-      return alert('binding events');
+      return this.$input.on('keyup', (e) => {
+        return this.create(e);
+      });
+    }
+
+    // $('#new-todo').on('keyup', (e) => @create(e))
+    create(e) {
+      var randomId, val;
+      // $input = $(this)
+      // $input = $(e.target)
+      val = $.trim(this.$input.val());
+      if (!(e.which === 13 && val)) {
+        return;
+      }
+      randomId = Math.floor(Math.random() * 999999);
+      localStorage.setObj(randomId, {
+        id: randomId,
+        title: val,
+        completed: false
+      });
+      this.$input.val('');
+      return this.displayItems();
+    }
+
+    // alert val
+    // We create the todo item
+    displayItems() {
+      var i, id, len, ref, results;
+      this.clearItems();
+      ref = Object.keys(localStorage);
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        id = ref[i];
+        results.push(this.addItem(localStorage.getObj(id)));
+      }
+      return results;
+    }
+
+    // alert 'displaying items'
+    clearItems() {
+      return this.$todoList.empty();
+    }
+
+    addItem(item) {
+      var html;
+      html = `<li ${(item.completed ? 'class="completed"' : '')} data-id="${item.id}">\n    <div class="view">\n        <input class="toggle" type="checkbox" ${(item.completed ? 'checked' : '')} />\n        <label>${item.title}</label>\n        <button class="destroy"></button>\n    </div>\n</li>`;
+      return this.$todoList.append(html);
     }
 
   };
